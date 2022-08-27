@@ -49,3 +49,7 @@ serve-backend: build-backend run-backend
 .PHONY: run-backend
 run-backend:
 	$(SERVE_BINARY)
+
+.PHONY: start-cluster
+start-cluster:
+	./aio/scripts/start-cluster.sh

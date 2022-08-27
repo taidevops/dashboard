@@ -5,8 +5,8 @@ import (
 
 	"github.com/emicklei/go-restful/v3"
 
-	"github.com/kubernetes/dashboard/src/app/backend/errors"
-	"github.com/kubernetes/dashboard/src/app/backend/handler/parser"
+	"github.com/taidevops/dashboard/src/app/backend/errors"
+	"github.com/taidevops/dashboard/src/app/backend/handler/parser"
 )
 
 type APIHandler struct {
@@ -26,5 +26,5 @@ func (apiHandler *APIHandler) handleGetClusterRoleList(request *restful.Request,
 	}
 
 	dataSet := parser.ParseDataSelectPathParameter(request)
-	result, err := 
+	result, err :=
 }

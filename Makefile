@@ -63,6 +63,10 @@ run-backend:
 check-codegen: ensure-codegen
 	./aio/scripts/verify-codegen.sh
 
+.PHONY: fix-codegen
+fix-codegen: ensure-codegen
+	./aio/scripts/update-codegen.sh
+
 .PHONY: start-cluster
 start-cluster:
 	./aio/scripts/start-cluster.sh

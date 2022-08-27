@@ -3,6 +3,9 @@ GOOS ?= $(shell go env GOOS)
 GOARCH ?= $(shell go env GOARCH)
 GOPATH ?= $(shell go env GOPATH)
 
+CODEGEN_VERSION := v0.24.1
+CODEGEN_BIN := $(GOPATH)/pkg/mod/k8s.io/code-generator@$(CODEGEN_VERSION)/generate-groups.sh
+
 GO_MAJOR_VERSION = $(shell go version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
 GO_MINOR_VERSION = $(shell go version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
 MIN_GO_MAJOR_VERSION = 1
@@ -17,6 +20,12 @@ RELEASE_VERSION = v2.6.1
 .PHONY: ensure-version
 ensure-version:
 	node ./aio/scripts/version.mjs
+
+.PHONY: ensure-codegen
+ensure-codegen: ensure-go
+	go get -d k8s.io/code-generator@$(CODEGEN_VERSION)
+	go mod tidy
+	chmod +x $(CODEGEN_BIN)
 
 .PHONY: ensure-go
 ensure-go:
@@ -50,6 +59,14 @@ serve-backend: build-backend run-backend
 run-backend:
 	$(SERVE_BINARY)
 
+.PHONY: check-codegen
+check-codegen: ensure-codegen
+	./aio/scripts/verify-codegen.sh
+
 .PHONY: start-cluster
 start-cluster:
 	./aio/scripts/start-cluster.sh
+
+.PHONY: stop-cluster
+stop-cluster:
+	./aio/scripts/stop-cluster.sh

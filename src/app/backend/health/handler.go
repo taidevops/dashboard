@@ -5,17 +5,18 @@ import (
 	"net/http"
 )
 
+// HealthHandler manages all endpoints related to system banner management.
 type HealthHandler struct {
-
+	manager HealthManager
 }
 
-// Install creates new endpoints for system banner mangement.
+// Install creates new endpoints for system banner management.
 func (self *HealthHandler) Install(w http.ResponseWriter, _ *http.Request) (int, error) {
 	w.Header().Set("Content-Type", "application/json")
 	return http.StatusOK, json.NewEncoder(w).Encode(self.manager.Get())
 }
 
-// NewHealthHandler creates HealthManager.
-func NewHealthHandler(manager HealthHandler) HealthHandler {
+// NewHealthHandler creates HealthHandler.
+func NewHealthHandler(manager HealthManager) HealthHandler {
 	return HealthHandler{manager: manager}
 }

@@ -1,10 +1,6 @@
 package dataselect
 
 import (
-	"log"
-	"sort"
-
-	"github.com/taidevops/dashboard/src/app/backend/errors"
 	metricapi "github.com/taidevops/dashboard/src/app/backend/integration/metric/api"
 )
 
@@ -37,22 +33,56 @@ type ComparableValue interface {
 // SelectableData contains all the required data to perform data selection.
 // It implements sort.Interface so its sortable under sort.Sort
 // You can use its Select method to get selected GenericDataCell list.
-type DataSeletor struct {
+type DataSelector struct {
 	// GenericDataList hold generic data cells that are being selected.
 	GenericDataList []DataCell
-	// DataSelectQuery golds instructions for data select.
+	// DataSelectQuery holds instructions for data select.
 	DataSelectQuery *DataSelectQuery
+	// CachedResources stores resources that may be needed during data selection process
+	CachedResources *metricapi.CachedResources
+	// CumulativeMetricsPromises is a list of promises holding aggregated metrics for resources in GenericDataList.
+	// The metrics will be calculated after calling GetCumulativeMetrics method.
+	CumulativeMetricsPromises metricapi.MetricPromises
+	// MetricsPromises is a list of promises holding metrics for resources in GenericDataList.
+	// The metrics will be calculated after calling GetMetrics method. Metric will not be
+	// aggregated and can are used to display sparklines on pod list.
+	MetricsPromises metricapi.MetricPromises
+}
 
-	CacheResources  *metricapi.CacheResources
+// Implementation of sort.Interface so that we can use built-in sort function (sort.Sort) for sorting SelectableData
 
-	CumulativeMetricsPromises metricapi.Metric
+// Len returns the length of data inside SelectableData.
+func (self DataSelector) Len() int { return len(self.GenericDataList) }
+
+// Swap swaps 2 indices inside SelectableData.
+func (self DataSelector) Swap(i, j int) {
+	self.GenericDataList[i], self.GenericDataList[j] = self.GenericDataList[j], self.GenericDataList[i]
+}
+
+func (self DataSelector) Less(i, j int) bool {
+	return false
+}
+
+func (self *DataSelector) Sort() *DataSelector {
+	return self
+}
+
+func (self *DataSelector) Filter() *DataSelector {
+	return self
+}
+
+func (self *DataSelector) GetMetrics(metricClient metricapi.MetricClient) *DataSelector {
+	return self
 }
 
 func PodListMetrics(dataList []DataCell, dsQuery *DataSelectQuery,
 	metricClient metricapi.MetricClient) metricapi.MetricPromises {
-	selectableData := DataSeletor{
+	selectableData := DataSelector{
 		GenericDataList: dataList,
 		DataSelectQuery: dsQuery,
-		Ca
+		CachedResources: metricapi.NoResourceCache,
 	}
+
+	processed := selectableData.GetMetrics(metricClient)
+	return processed.MetricsPromises
 }

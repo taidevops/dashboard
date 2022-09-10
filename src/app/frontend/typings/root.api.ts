@@ -5,6 +5,10 @@ export interface Theme {
   isDark: boolean;
 }
 
+export interface AppConfig {
+  serverTime: number;
+}
+
 export interface EnvVar {
   name: string;
   value: string;

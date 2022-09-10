@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/emicklei/go-restful/v3"
-	"github.com/kubernetes/dashboard/src/app/backend/resource/deployment"
+	"github.com/taidevops/dashboard/src/app/backend/resource/deployment"
 
 	"github.com/taidevops/dashboard/src/app/backend/api"
 	"github.com/taidevops/dashboard/src/app/backend/errors"
@@ -36,7 +36,6 @@ func CreateHTTPAPIHandler() (http.Handler, error) {
 			To(apiHandler.handleDeploy).
 			Reads(deployment.AppDeploymentSpec{}).
 			Writes(deployment.AppDeploymentSpec{}))
-
 
 	return wsContainer, nil
 }

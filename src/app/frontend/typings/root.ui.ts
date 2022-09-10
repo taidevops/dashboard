@@ -1,6 +1,12 @@
 
 export type ThemeSwitchCallback = (isLightThemeEnabled: boolean) => void;
 
+export interface VersionInfo {
+  dirty: boolean;
+  raw: string;
+  hash: string;
+}
+
 export interface AppConfig {
 
 }

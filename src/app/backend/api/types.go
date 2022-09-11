@@ -3,6 +3,8 @@ package api
 import (
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -67,13 +69,13 @@ type TypeMeta struct {
 	Restartable bool `json:"restartable,omitempty"`
 }
 
-// ListMeta describes list of objects, i.e holds information about pagination options set for the list.
+// ListMeta describes list of objects, i.e. holds information about pagination options set for the list.
 type ListMeta struct {
 	// Total number of items on the list. Used for pagination.
 	TotalItems int `json:"totalItems"`
 }
 
-// ObjectMeta returns internal endpoint name for the given service properties. e.g.,
+// NewObjectMeta returns internal endpoint name for the given service properties, e.g.,
 // NewObjectMeta creates a new instance of ObjectMeta struct based on K8s object meta.
 func NewObjectMeta(k8SObjectMeta metaV1.ObjectMeta) ObjectMeta {
 	return ObjectMeta{
@@ -100,17 +102,71 @@ func NewTypeMeta(kind ResourceKind) TypeMeta {
 // that based on resource kind, name and namespace deletes it.
 type ResourceKind string
 
+// List of all resource kinds supported by the UI.
 const (
-	ResourceKindConfigMap    = "configmap"
-	ResourceKindDaemonSet    = "daemonset"
-	ResourceKindStorageClass = "storageclass"
+	ResourceKindConfigMap                = "configmap"
+	ResourceKindDaemonSet                = "daemonset"
+	ResourceKindDeployment               = "deployment"
+	ResourceKindEvent                    = "event"
+	ResourceKindHorizontalPodAutoscaler  = "horizontalpodautoscaler"
+	ResourceKindIngress                  = "ingress"
+	ResourceKindServiceAccount           = "serviceaccount"
+	ResourceKindJob                      = "job"
+	ResourceKindCronJob                  = "cronjob"
+	ResourceKindLimitRange               = "limitrange"
+	ResourceKindNamespace                = "namespace"
+	ResourceKindNode                     = "node"
+	ResourceKindPersistentVolumeClaim    = "persistentvolumeclaim"
+	ResourceKindPersistentVolume         = "persistentvolume"
+	ResourceKindCustomResourceDefinition = "customresourcedefinition"
+	ResourceKindPod                      = "pod"
+	ResourceKindReplicaSet               = "replicaset"
+	ResourceKindReplicationController    = "replicationcontroller"
+	ResourceKindResourceQuota            = "resourcequota"
+	ResourceKindSecret                   = "secret"
+	ResourceKindService                  = "service"
+	ResourceKindStatefulSet              = "statefulset"
+	ResourceKindStorageClass             = "storageclass"
+	ResourceKindClusterRole              = "clusterrole"
+	ResourceKindClusterRoleBinding       = "clusterrolebinding"
+	ResourceKindRole                     = "role"
+	ResourceKindRoleBinding              = "rolebinding"
+	ResourceKindPlugin                   = "plugin"
+	ResourceKindEndpoint                 = "endpoint"
+	ResourceKindNetworkPolicy            = "networkpolicy"
+	ResourceKindIngressClass             = "ingressclass"
 )
 
+// Scalable method return whether ResourceKind is scalable.
 func (k ResourceKind) Scalable() bool {
+	scalable := []ResourceKind{
+		ResourceKindDeployment,
+		ResourceKindReplicaSet,
+		ResourceKindReplicationController,
+		ResourceKindStatefulSet,
+	}
+
+	for _, kind := range scalable {
+		if k == kind {
+			return true
+		}
+	}
+
 	return false
 }
 
+// Restartable method return whether ResourceKind is restartable.
 func (k ResourceKind) Restartable() bool {
+	restartable := []ResourceKind{
+		ResourceKindDeployment,
+	}
+
+	for _, kind := range restartable {
+		if k == kind {
+			return true
+		}
+	}
+
 	return false
 }
 
@@ -119,16 +175,27 @@ func (k ResourceKind) Restartable() bool {
 // and StatefulSets to apps client.
 type ClientType string
 
+// List of client types supported by the UI.
 const (
-	ClientTypeDefault    = "restclient"
-	ClientTypeAppsClient = "appsclient"
+	ClientTypeDefault             = "restclient"
+	ClientTypeAppsClient          = "appsclient"
+	ClientTypeBatchClient         = "batchclient"
+	ClientTypeBetaBatchClient     = "betabatchclient"
+	ClientTypeAutoscalingClient   = "autoscalingclient"
+	ClientTypeStorageClient       = "storageclient"
+	ClientTypeRbacClient          = "rbacclient"
+	ClientTypeAPIExtensionsClient = "apiextensionsclient"
+	ClientTypeNetworkingClient    = "networkingclient"
+	ClientTypePluginsClient       = "plugin"
 )
 
+// APIMapping is the mapping from resource kind to ClientType and Namespaced.
 type APIMapping struct {
+	// Kubernetes resource name.
 	Resource string
-
+	// Client type used by given resource, i.e. deployments are using extension client.
 	ClientType ClientType
-
+	// Is this object global scoped (not below a namespace).
 	Namespaced bool
 }
 
@@ -137,6 +204,67 @@ type APIMapping struct {
 // Must be kept in sync with the list of supported kinds.
 // See: https://kubernetes.io/docs/reference/
 var KindToAPIMapping = map[string]APIMapping{
-	ResourceKindConfigMap: {"configmaps", ClientTypeDefault, true},
-	ResourceKindDaemonSet: {"daemonsets", ClientTypeAppsClient, true},
+	ResourceKindConfigMap:                {"configmaps", ClientTypeDefault, true},
+	ResourceKindDaemonSet:                {"daemonsets", ClientTypeAppsClient, true},
+	ResourceKindDeployment:               {"deployments", ClientTypeAppsClient, true},
+	ResourceKindEvent:                    {"events", ClientTypeDefault, true},
+	ResourceKindHorizontalPodAutoscaler:  {"horizontalpodautoscalers", ClientTypeAutoscalingClient, true},
+	ResourceKindIngress:                  {"ingresses", ClientTypeNetworkingClient, true},
+	ResourceKindIngressClass:             {"ingressclasses", ClientTypeNetworkingClient, false},
+	ResourceKindJob:                      {"jobs", ClientTypeBatchClient, true},
+	ResourceKindCronJob:                  {"cronjobs", ClientTypeBetaBatchClient, true},
+	ResourceKindLimitRange:               {"limitrange", ClientTypeDefault, true},
+	ResourceKindNamespace:                {"namespaces", ClientTypeDefault, false},
+	ResourceKindNode:                     {"nodes", ClientTypeDefault, false},
+	ResourceKindPersistentVolumeClaim:    {"persistentvolumeclaims", ClientTypeDefault, true},
+	ResourceKindPersistentVolume:         {"persistentvolumes", ClientTypeDefault, false},
+	ResourceKindCustomResourceDefinition: {"customresourcedefinitions", ClientTypeAPIExtensionsClient, false},
+	ResourceKindPod:                      {"pods", ClientTypeDefault, true},
+	ResourceKindReplicaSet:               {"replicasets", ClientTypeAppsClient, true},
+	ResourceKindReplicationController:    {"replicationcontrollers", ClientTypeDefault, true},
+	ResourceKindResourceQuota:            {"resourcequotas", ClientTypeDefault, true},
+	ResourceKindSecret:                   {"secrets", ClientTypeDefault, true},
+	ResourceKindService:                  {"services", ClientTypeDefault, true},
+	ResourceKindServiceAccount:           {"serviceaccounts", ClientTypeDefault, true},
+	ResourceKindStatefulSet:              {"statefulsets", ClientTypeAppsClient, true},
+	ResourceKindStorageClass:             {"storageclasses", ClientTypeStorageClient, false},
+	ResourceKindEndpoint:                 {"endpoints", ClientTypeDefault, true},
+	ResourceKindNetworkPolicy:            {"networkpolicies", ClientTypeNetworkingClient, true},
+	ResourceKindClusterRole:              {"clusterroles", ClientTypeRbacClient, false},
+	ResourceKindClusterRoleBinding:       {"clusterrolebindings", ClientTypeRbacClient, false},
+	ResourceKindRole:                     {"roles", ClientTypeRbacClient, true},
+	ResourceKindRoleBinding:              {"rolebindings", ClientTypeRbacClient, true},
+	ResourceKindPlugin:                   {"plugins", ClientTypePluginsClient, true},
+}
+
+// IsSelectorMatching returns true when an object with the given selector targets the same
+// Resources (or subset) that the target object with the given selector.
+func IsSelectorMatching(srcSelector map[string]string, targetObjectLabels map[string]string) bool {
+	// If service has no selectors, then assume it targets different resource.
+	if len(srcSelector) == 0 {
+		return false
+	}
+	for label, value := range srcSelector {
+		if rsValue, ok := targetObjectLabels[label]; !ok || rsValue != value {
+			return false
+		}
+	}
+	return true
+}
+
+// IsLabelSelectorMatching returns true when a resource with the given selector targets the same
+// Resources(or subset) that a target object selector with the given selector.
+func IsLabelSelectorMatching(srcSelector map[string]string, targetLabelSelector *v1.LabelSelector) bool {
+	// Check to see if targetLabelSelector pointer is not nil.
+	if targetLabelSelector != nil {
+		targetObjectLabels := targetLabelSelector.MatchLabels
+		return IsSelectorMatching(srcSelector, targetObjectLabels)
+	}
+	return false
+}
+
+// ListEverything is a list options used to list all resources without any filtering.
+var ListEverything = metaV1.ListOptions{
+	LabelSelector: labels.Everything().String(),
+	FieldSelector: fields.Everything().String(),
 }

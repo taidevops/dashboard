@@ -1,6 +1,7 @@
 package integration
 
 import (
+	clientapi "github.com/taidevops/dashboard/src/app/backend/client/api"
 	"github.com/taidevops/dashboard/src/app/backend/integration/metric"
 )
 
@@ -15,4 +16,10 @@ type integrationManager struct {
 
 func (self *integrationManager) Metric() metric.MetricManager {
 	return self.metric
+}
+
+func NewIntegrationManager(manager clientapi.ClientManager) IntegrationManager {
+	return &integrationManager{
+		metric: metric.NewMetricManager(manager),
+	}
 }

@@ -36,7 +36,10 @@ export interface RatioItem {
 
 export interface ResourcesRatio {
   cronJobRatio: RatioItem[];
-  
+  daemonSetRatio: RatioItem[];
+  deploymentRatio: RatioItem[];
+  jobRatio: RatioItem[];
+  podRatio: RatioItem[];
 }
 
 export interface AppConfig {

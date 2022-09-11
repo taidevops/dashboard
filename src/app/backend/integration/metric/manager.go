@@ -9,28 +9,31 @@ import (
 	integrationapi "github.com/taidevops/dashboard/src/app/backend/integration/api"
 	metricapi "github.com/taidevops/dashboard/src/app/backend/integration/metric/api"
 	"k8s.io/apimachinery/pkg/util/wait"
-
-	"github.com/taidevops/dashboard/src/app/backend/integration/metric/sidecar"
 )
 
+// MetricManager is responsible for management of all integrated applications related to metrics.
 type MetricManager interface {
+	// AddClient adds metric client to client list supported by this manager.
 	AddClient(metricapi.MetricClient) MetricManager
-
+	// Client returns active Metric client.
 	Client() metricapi.MetricClient
-
+	// Enable is responsible for switching active client if given integration application id
+	// is found and related application is healthy (we can connect to it).
 	Enable(integrationapi.IntegrationID) error
-
+	// EnableWithRetry works similar to enable. It runs in a separate thread and tries to enable integration with given
+	// id every 'period' seconds.
 	EnableWithRetry(id integrationapi.IntegrationID, period time.Duration)
-
+	// List returns list of available metric related integrations.
 	List() []integrationapi.Integration
-
-	ConfiguresSidecar(host string) MetricManager
+	// ConfigureSidecar configures and adds sidecar to clients list.
+	ConfigureSidecar(host string) MetricManager
 }
 
+// Implements MetricManager interface.
 type metricManager struct {
 	manager clientapi.ClientManager
 	clients map[integrationapi.IntegrationID]metricapi.MetricClient
-	active metricapi.MetricClient
+	active  metricapi.MetricClient
 }
 
 func (self *metricManager) AddClient(client metricapi.MetricClient) MetricManager {
@@ -87,6 +90,12 @@ func (self *metricManager) List() []integrationapi.Integration {
 }
 
 func (self *metricManager) ConfigureSidecar(host string) MetricManager {
-	kubeClient := self.manager.InsecureClient()
-	metricClient, err := sidecar
+	return self
+}
+
+func NewMetricManager(manager clientapi.ClientManager) MetricManager {
+	return &metricManager{
+		manager: manager,
+		clients: make(map[integrationapi.IntegrationID]metricapi.MetricClient),
+	}
 }

@@ -1,4 +1,8 @@
 
+export interface CsrfToken {
+  token: string;
+}
+
 export interface Theme {
   name: string;
   displayName: string;
@@ -20,4 +24,22 @@ export interface Container {
   env: EnvVar[];
   commands: string[];
   args: string[];
+}
+
+export interface LoginStatus {
+  tokenPresent: boolean;
+  headerPresent: boolean;
+  httpsMode: boolean;
+  impersonationPresent?: boolean;
+  impersonatedUser?: string;
+}
+
+export type AuthenticationMode = string;
+
+export interface EnabledAuthenticationModes {
+  modes: AuthenticationMode[];
+}
+
+export interface LoginSkippableResponse {
+  skippable: boolean;
 }

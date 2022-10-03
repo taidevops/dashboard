@@ -46,6 +46,24 @@ export interface AppConfig {
 
 }
 
+export interface IConfig {
+  authTokenCookieName: string;
+  usernameCookieName: string;
+  skipLoginPageCookieName: string;
+  csrfHeaderName: string;
+  authTokenHeaderName: string;
+  defaultNamespace: string;
+  authModeCookieName: string;
+  supportedLanguages: LanguageConfig[];
+  defaultLanguage: string;
+  languageCookieName: string;
+}
+
+export interface LanguageConfig {
+  value: string;
+  label: string;
+}
+
 export enum IMessageKey {
   Open = 'Open',
   Close = 'Close',

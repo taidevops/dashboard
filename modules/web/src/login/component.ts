@@ -1,4 +1,7 @@
+import {HttpClient, HttpErrorResponse} from '@angular/common/http';
 import { OnInit } from "@angular/core";
+
+import {AuthenticationMode} from '@api/root.api';
 
 enum LoginModes {
   Kubeconfig = 'kubeconfig',
@@ -11,9 +14,15 @@ export class LoginComponent implements OnInit {
 
   errors: KdError[] = [];
 
-  private enablesAuthenticationModes_: AuthenticationMode[] = [];
+  private enabledAuthenticationModes_: AuthenticationMode[] = [];
+  private isLoginSkippable_ = false;
+  private kubeconfig_: string;
+  private token_: string;
+  private username_: string;
+  private password_: string;
 
   constructor(
+    private readonly authService_: Auservce
     private readonly http_: HttpClient,
   ) {}
 
@@ -23,7 +32,12 @@ export class LoginComponent implements OnInit {
       .subscribe((enabledMode: EnableAuthenticationModes) => {
         this.enablesAuthenticationModes_ = enabledMode.modes;
         this.enablesAuthenticationModes_.push(LoginModes.Kubeconfig);
-        this.selectedAuthenticationMode as LoginModels)
-      })
+        this.selectedAuthenticationMode = this.selectedAuthenticationMode
+          ? (this.selectedAuthenticationMode as LoginModes)
+          : (this.enablesAuthenticationModes_[0] as LoginModes)
+      });
+
+    this.http_
+      .set
   }
 }

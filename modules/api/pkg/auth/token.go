@@ -1,7 +1,7 @@
 package auth
 
 import (
-	authApi "github.com/taidevops/dashboard/src/app/backend/auth/api"
+	authApi "github.com/taidevops/dashboard/api/pkg/auth/api"
 	"k8s.io/client-go/tools/clientcmd/api"
 )
 

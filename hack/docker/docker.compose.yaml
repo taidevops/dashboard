@@ -1,0 +1,16 @@
+version: "3.8"
+services:
+  web:
+    build:
+      context: ../..
+      dockerfile: modules/web/Dockerfile
+      args:
+        - TARGETOS=${OS:?}
+        - TARGETARCH=${ARCH:?}
+    command:
+      --locale-config=/public/locale_conf.json
+      --auto-generate-certificates
+      --system-banner="${SYSTEM_BANNER:?}"
+      --system-banner-severity=${SYSTEM_BANNER_SEVERITY:?}
+    tmpfs:
+      - /tmp
